@@ -6,6 +6,7 @@ type Config struct {
 	ServiceName string `envconfig:"SERVICE_NAME" default:"asadel-rest-api"`
 	Environment string `envconfig:"ENV" default:"dev"`
 	Port        int    `envconfig:"PORT" default:"8080" required:"true"`
+	BaseUrl     string `envconfig:"BASE_URL" default:"8080" required:"true"`
 
 	DBHost     string `envconfig:"DB_HOST" default:"localhost"`
 	DBPort     string `envconfig:"DB_PORT" default:"27017"`

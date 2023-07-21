@@ -26,7 +26,7 @@ func (uc *usecase) Shorten(longUrl string) (string, error) {
 	return shortUrl, nil
 }
 
-func (uc *usecase) Resolve(shortUrl string) (string, error) {
+func (uc *usecase) Redirect(shortUrl string) (string, error) {
 	url, err := uc.url_repo.Find(shortUrl)
 	if err != nil {
 		return "", err

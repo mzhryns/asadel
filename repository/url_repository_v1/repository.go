@@ -27,7 +27,7 @@ func (r *repository) Find(short string) (*entity.Url, error) {
 	err := r.collection.FindOne(
 		context.Background(),
 		bson.M{"short": short},
-	).Decode(urlData)
+	).Decode(&urlData)
 
 	out := urlData.ToUrlEntity()
 	return out, err
