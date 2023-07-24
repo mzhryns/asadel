@@ -7,9 +7,9 @@ launch:
 	go run main.go
 
 .PHONY: docker-build
-launch:
+docker-build:
 	docker build -t asadel .
 
 .PHONY: docker-run
-launch:
+docker-run:
 	docker-compose up -d
