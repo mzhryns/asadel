@@ -69,6 +69,7 @@ func (h *restHandler) Resolve(c *gin.Context) {
 		"image":       metaData.Image,
 		"type":        metaData.Type,
 		"url":         metaData.Url,
+		"destination": url,
 		"deeplink":    deeplink,
 		"android":     storeAndroid,
 		"ios":         storeIOS,

@@ -2,108 +2,274 @@
 
 <!DOCTYPE html>
 <html>
-<head>
-  <meta property="og:title" content="{{ .title }}" />
-  <meta property="og:type" content="{{ .type }}" />
-  <meta property="og:url" content="{{ .url }}" />
-  <meta property="og:image" content="{{ .image }}" />
-  <meta property="og:description" content="{{ .description }}" />
-  <style>
-    body {
+  <head>
+    <title>Please wait...</title>
+    <meta property="og:title" content="{{ .title }}" />
+    <meta property="og:type" content="{{ .type }}" />
+    <meta property="og:url" content="{{ .url }}" />
+    <meta property="og:image" content="{{ .image }}" />
+    <meta property="og:description" content="{{ .description }}" />
+    <style>
+      body {
         margin: 0;
         padding: 0;
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
-        background: #00000;
-    }
+        background: #fff;
+      }
 
-    .lds-ripple {
+      .lds-ripple {
         display: inline-block;
         position: relative;
         width: 80px;
         height: 80px;
-    }
-    .lds-ripple div {
+      }
+      .lds-ripple div {
         position: absolute;
         border: 4px solid #ed2027;
         opacity: 1;
         border-radius: 50%;
         animation: lds-ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;
-    }
-    .lds-ripple div:nth-child(2) {
+      }
+      .lds-ripple div:nth-child(2) {
         animation-delay: -0.5s;
-    }
-    @keyframes lds-ripple {
+      }
+      @keyframes lds-ripple {
         0% {
-            top: 36px;
-            left: 36px;
-            width: 0;
-            height: 0;
-            opacity: 1;
+          top: 36px;
+          left: 36px;
+          width: 0;
+          height: 0;
+          opacity: 1;
         }
         100% {
-            top: 0px;
-            left: 0px;
-            width: 72px;
-            height: 72px;
-            opacity: 0;
+          top: 0px;
+          left: 0px;
+          width: 72px;
+          height: 72px;
+          opacity: 0;
         }
-    }
-  </style>
-</head>
-<body>
-  <div class="lds-ripple"><div></div><div></div></div>
+      }
+    </style>
 
-  <script language="javascript">
-    const getMobileOS = () => {
-      const ua = navigator.userAgent
+    <script language="javascript">
+      (function () {
+        var queryString = {},
+          browserMovedToBackground = false;
 
-      if (/android/i.test(ua)) {
-        return "Android"
+        // Parse the query string so we can take individual query string params
+        (function (search) {
+          search = (search || "").split(/[\&\?]/g);
+          for (var i = 0, count = search.length; i < count; i++) {
+            if (!search[i]) continue;
+            var pair = search[i].split("=");
+            queryString[pair[0]] =
+              queryString[pair[0]] !== undefined
+                ? [pair[1] || ""].concat(queryString[pair[0]])
+                : pair[1] || "";
+          }
+        })(window.location.search);
 
-      } else if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
-        return "iOS"
+        // Listen to visibility change to prevent next url
+        window.document.addEventListener("visibilitychange", function (e) {
+          browserMovedToBackground =
+            window.document.visibilityState === "hidden" ||
+            window.document.visibilityState === "unloaded";
+        });
+        window.addEventListener("blur", function (e) {
+          browserMovedToBackground = true;
+        });
+
+        var AppRedirect = {
+          /**
+           * @expose
+           * @public
+           * */
+          queryString: queryString,
+
+          redirect: function (options) {
+            var hasIos = !!(options.iosApp || options.iosAppStore);
+            var hasAndroid = !!options.android;
+            var hasOverallFallback = !!options.overallFallback;
+
+            /**
+             * What happens now is:
+             * 1. We select the correct platform based on userAgent
+             * 2. We try to open the app using the special schema
+             *
+             *    └───> If it succeded, the we have left the browser, and went to the app.
+             *          *. If the user goes back to the browser at this stage, he will be sadly redirected to the second url (AppStore etc.)
+             *    └───> If opening the app failed (schema not recognized), then:
+             *          1. An error will be shown
+             *          2. The user will be redirected to the second url.
+             *          *.  Returning to the browser later will show the error.
+             *
+             * For Android it's different. There's the intent:// url, which takes the "package" argument in order to fallback to the Store.
+             * But if you want to aggregate arguments to the store, you can use the "fallback" argument for that, and supply a Store url.
+             * QueryString arguments will be automatically aggregated.
+             */
+
+            var tryToOpenInMultiplePhases = function (urls) {
+              browserMovedToBackground = false;
+
+              var currentIndex = 0;
+              var redirectTime = new Date();
+              window.location = urls[currentIndex++];
+
+              var next = function () {
+                if (urls.length > currentIndex) {
+                  setTimeout(function () {
+                    if (browserMovedToBackground) {
+                      console.log(
+                        "Browser moved to the background, we assume that we are done here"
+                      );
+                      return;
+                    }
+
+                    if (new Date() - redirectTime > 3000) {
+                      console.log(
+                        "Enough time has passed, the app is probably open"
+                      );
+                    } else {
+                      redirectTime = new Date();
+                      window.location = urls[currentIndex++];
+                      next();
+                    }
+                  }, 10);
+                }
+              };
+
+              next();
+            };
+
+            // var chromeVersion = /Chrome\/([0-9\.]+)/.test(navigator.userAgent) ? navigator.userAgent.match(/Chrome\/([0-9\.]+)/)[1] : '';
+
+            if (hasIos && /iP(hone|ad|od)/.test(navigator.userAgent)) {
+              var urls = [];
+              if (options.iosApp) {
+                urls.push(options.iosApp);
+              }
+              if (options.iosAppStore) {
+                urls.push(options.iosAppStore);
+              }
+              tryToOpenInMultiplePhases(urls);
+            } else if (hasAndroid && /Android/.test(navigator.userAgent)) {
+              var intent = options.android;
+              var intentUrl =
+                "intent://" +
+                intent.host +
+                "#Intent;" +
+                "scheme=" +
+                encodeURIComponent(intent.scheme) +
+                ";" +
+                "package=" +
+                encodeURIComponent(intent.package) +
+                ";" +
+                (intent.action
+                  ? "action=" + encodeURIComponent(intent.action) + ";"
+                  : "") +
+                (intent.category
+                  ? "category=" + encodeURIComponent(intent.category) + ";"
+                  : "") +
+                (intent.component
+                  ? "component=" + encodeURIComponent(intent.component) + ";"
+                  : "") +
+                (intent.fallback
+                  ? "S.browser_fallback_url=" +
+                    encodeURIComponent(intent.fallback) +
+                    ";"
+                  : "") +
+                "end";
+              var anchor = document.createElement("a");
+              document.body.appendChild(anchor);
+              anchor.href = intentUrl;
+              if (anchor.click) {
+                anchor.click();
+              } else {
+                window.location = intentUrl;
+              }
+            } else if (hasOverallFallback) {
+              window.location = options.overallFallback;
+            } else {
+              console.log(
+                "Unknown platform and no overallFallback URL, nothing to do"
+              );
+            }
+          },
+        };
+
+        /** @expose */
+        window.AppRedirect = AppRedirect;
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="lds-ripple">
+      <div></div>
+      <div></div>
+    </div>
+
+    <script language="javascript">
+      var extractSchemeHost = function (urlString) {
+        let url;
+
+        try {
+          url = new URL(urlString);
+        } catch (error) {
+          console.error("Invalid URL");
+          return;
+        }
+
+        return {
+          scheme: url.protocol.slice(0, -1), // Remove trailing ':'
+          host: url.hostname,
+        };
+      };
+
+      var { scheme, host } = extractSchemeHost({{ .deeplink }});
+
+      function extractPackageName(urlString) {
+        let url;
+
+        try {
+          url = new URL(urlString);
+        } catch (error) {
+          console.error("Invalid URL");
+          return;
+        }
+
+        return url.searchParams.get("id");
       }
 
-      return "Other"
-    }
+      var packageName = extractPackageName({{ .android }})
 
-    const handleAppRedirect = () => {
-      var mobileOS = getMobileOS();
-      var url = {{ .url }};
-      var deeplink = {{ .deeplink }};
+      // You have the whole queryString ready for you here in a key->value form.
+      // In the edge case where there are multiple values, the value is an array.
+      var qs = AppRedirect.queryString;
 
-      if (deeplink) {
-        // Try to open the when user click in the "confirm" in popup
-        window.location.replace(deeplink);
+      // Here we initiate the redirect process
+      AppRedirect.redirect({
+        iosApp: {{ .deeplink }},
 
-        if (mobileOS === "Android" && deeplink !== "" ) {
-          setTimeout(() => {
-            // If the app is not installed,
-            // then the user is redirect to the Play Store
-            window.location.replace({{ .android }});
-          }, 3000);
-        } else if (mobileOS === "iOS" && deeplink !== "") {
-          setTimeout(() => {
-            // If the app is not installed
-            // then the user is redirect to the App Store
-            window.location.replace({{ .ios }});
-          }, 3000);
-        } else {
-          setTimeout(() => {
-            // Redirect to associate URL
-            window.location.replace({{ .url }});
-          }, 3000);
-        }
-      } else {
-        window.location.replace(url);
-      }
-    }
+        iosAppStore: {{ .ios }},
 
-    handleAppRedirect();
-  </script>
-</body>
+        // For this, your app need to have category filter: android.intent.category.BROWSABLE
+        android: {
+          host: host, // Host/path/querystring part in a custom scheme URL
+          // 'action': '', // Equivalent to ACTION in INTENTs
+          // 'category': '', // Equivalent to CATEGORY in INTENTs
+          // 'component': '', // Equivalent to COMPONENT in INTENTs
+          scheme: scheme, // Scheme part in a custom scheme URL
+          package: packageName, // Package name in Play store
+          fallback: {{ .android }},
+        },
+
+        overallFallback: {{ .destination }},
+      });
+    </script>
+  </body>
 </html>
+
 {{ end }}

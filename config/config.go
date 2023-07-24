@@ -21,11 +21,11 @@ type Config struct {
 	DBUrlCollection string `mapstructure:"DB_URL_COLLECTION"`
 }
 
-func New(path string) (*Config, error) {
+func New(path, name string) (*Config, error) {
 	cfg := &Config{}
 
 	viper.AddConfigPath(path)
-	viper.SetConfigName("")
+	viper.SetConfigName(name)
 	viper.SetConfigType("env")
 
 	viper.AutomaticEnv()

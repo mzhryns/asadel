@@ -5,6 +5,7 @@ services:
     ports:
       - 8080:8080
     environment:
+      - BASE_URL=http://localhost:8080/
       - DB_HOST=mongo
     depends_on:
       - mongo
@@ -12,8 +13,8 @@ services:
   mongo:
     image: mongo:4.4.18
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=example
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
     ports:
       - 27017:27017
     volumes:

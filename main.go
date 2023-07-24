@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	cfg, err := config.New(".")
+	cfg, err := config.New(".", ".env")
 	if err != nil {
 		log.Fatal("cannot load config: ", err)
 	}

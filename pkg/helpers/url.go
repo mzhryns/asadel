@@ -8,10 +8,12 @@ import (
 )
 
 func FormatUrl(baseUrl string, e *entity.Url) string {
-	u := url.QueryEscape(e.Long)
-	d := url.QueryEscape(e.Deeplink)
-	a := url.QueryEscape(e.Android)
-	i := url.QueryEscape(e.Ios)
+	queryParams := url.Values{
+		"u": []string{e.Long},
+		"d": []string{e.Deeplink},
+		"a": []string{e.Android},
+		"i": []string{e.Ios},
+	}
 
-	return fmt.Sprintf("%s?u=%s&d=%s&a=%s&i=%s", baseUrl, u, d, a, i)
+	return fmt.Sprintf("%s?%s", baseUrl, queryParams.Encode())
 }
