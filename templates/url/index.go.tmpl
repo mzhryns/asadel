@@ -224,11 +224,11 @@
 
         return {
           scheme: url.protocol.slice(0, -1), // Remove trailing ':'
-          host: url.hostname,
+          path: url.pathname.slice(2),
         };
       };
 
-      var { scheme, host } = extractSchemeHost({{ .deeplink }});
+      var { scheme, path } = extractSchemeHost({{ .deeplink }});
 
       function extractPackageName(urlString) {
         let url;
@@ -245,6 +245,10 @@
 
       var packageName = extractPackageName({{ .android }})
 
+      console.log(scheme)
+      console.log(path)
+      console.log(packageName)
+
       // You have the whole queryString ready for you here in a key->value form.
       // In the edge case where there are multiple values, the value is an array.
       var qs = AppRedirect.queryString;
@@ -257,7 +261,7 @@
 
         // For this, your app need to have category filter: android.intent.category.BROWSABLE
         android: {
-          host: host, // Host/path/querystring part in a custom scheme URL
+          host: path, // Host/path/querystring part in a custom scheme URL
           // 'action': '', // Equivalent to ACTION in INTENTs
           // 'category': '', // Equivalent to CATEGORY in INTENTs
           // 'component': '', // Equivalent to COMPONENT in INTENTs
