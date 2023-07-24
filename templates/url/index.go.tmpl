@@ -55,6 +55,55 @@
 </head>
 <body>
   <div class="lds-ripple"><div></div><div></div></div>
+
+  <script language="javascript">
+    const getMobileOS = () => {
+      const ua = navigator.userAgent
+
+      if (/android/i.test(ua)) {
+        return "Android"
+
+      } else if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+        return "iOS"
+      }
+
+      return "Other"
+    }
+
+    const handleAppRedirect = () => {
+      var mobileOS = getMobileOS();
+      var url = {{ .url }};
+      var deeplink = {{ .deeplink }};
+
+      if (deeplink) {
+        // Try to open the when user click in the "confirm" in popup
+        window.location.replace(deeplink);
+
+        if (mobileOS === "Android" && deeplink !== "" ) {
+          setTimeout(() => {
+            // If the app is not installed,
+            // then the user is redirect to the Play Store
+            window.location.replace({{ .android }});
+          }, 3000);
+        } else if (mobileOS === "iOS" && deeplink !== "") {
+          setTimeout(() => {
+            // If the app is not installed
+            // then the user is redirect to the App Store
+            window.location.replace({{ .ios }});
+          }, 3000);
+        } else {
+          setTimeout(() => {
+            // Redirect to associate URL
+            window.location.replace({{ .url }});
+          }, 3000);
+        }
+      } else {
+        window.location.replace(url);
+      }
+    }
+
+    handleAppRedirect();
+  </script>
 </body>
 </html>
 {{ end }}

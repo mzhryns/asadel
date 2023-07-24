@@ -16,7 +16,10 @@ import (
 )
 
 func main() {
-	cfg := config.New()
+	cfg, err := config.New(".")
+	if err != nil {
+		log.Fatal("cannot load config: ", err)
+	}
 
 	if cfg.Environment == "dev" {
 		gin.SetMode(gin.DebugMode)
@@ -38,7 +41,7 @@ func main() {
 	meta_data_repo := meta_data_repository_v1.New()
 	meta_data_reader_uc := meta_data_reader.NewUseCase(meta_data_repo)
 
-	h := handler.NewHandler(url_shortener_uc, meta_data_reader_uc)
+	h := handler.NewHandler(url_shortener_uc, meta_data_reader_uc, cfg.BaseUrl)
 
 	router.GET("/", h.Resolve)
 	router.GET("/s/:shortenUrl", h.Redirect)

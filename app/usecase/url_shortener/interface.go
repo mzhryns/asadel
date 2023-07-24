@@ -1,6 +1,8 @@
 package url_shortener
 
+import "github.com/zhryn/asadel/entity"
+
 type UseCase interface {
-	Shorten(longUrl string) (string, error)
-	Redirect(shortUrl string) (string, error)
+	Shorten(longUrl, deeplink, storeAndroid, storeIOS string) (string, error)
+	Redirect(shortUrl string) (*entity.Url, error)
 }
