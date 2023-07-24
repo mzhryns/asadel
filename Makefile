@@ -10,7 +10,6 @@ launch:
 launch:
 	docker build -t asadel .
 
-.PHONY: docker-build
+.PHONY: docker-run
 launch:
 	docker-compose up -d
-	
