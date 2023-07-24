@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  app:
+    image: asadel
+    ports:
+      - 8080:8080
+    environment:
+      - DB_HOST=mongo
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
